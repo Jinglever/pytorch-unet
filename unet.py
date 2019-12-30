@@ -59,14 +59,13 @@ class UNetDecoder(nn.Module):
         """
         _, _, h1, w1 = skip.shape
         _, _, h2, w2 = x.shape
-        if h1 >= h2:
-            dh = (h1 - h2) // 2
-            dw = (w1 - w2) // 2
-            return skip[:, :, dh: (dh + h2), dw: (dw + w2)], x
-        else:
-            dh = (h2 - h1) // 2
-            dw = (w2 - w1) // 2
-            return skip, x[:, :, dh: (dh + h1), dw: (dw + w1)]
+        ht, wt = min(h1, h2), min(w1, w2)
+        dh1 = (h1 - ht) // 2 if h1 > ht else 0
+        dw1 = (w1 - wt) // 2 if w1 > wt else 0
+        dh2 = (h2 - ht) // 2 if h2 > ht else 0
+        dw2 = (w2 - wt) // 2 if w2 > wt else 0
+        return skip[:, :, dh1: (dh1 + ht), dw1: (dw1 + wt)], \
+                x[:, :, dh2: (dh2 + ht), dw2: (dw2 + wt)]
 
     def forward(self, x, skips, reverse_skips=True):
         assert len(skips) == len(self.blocks) - 1
